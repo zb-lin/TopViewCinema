@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>管理员页面</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/theme-chalk/index.css" rel="stylesheet">
+</head>
+<body>
+<div id="app">
+    <el-container>
+        <!--头部-->
+        <el-header class="el-header">
+            <el-container>
+                <div>
+                    <el-image src="http://localhost:8080/TopViewCinema/img/logo.jpg" class="header-img"></el-image>
+                </div>
+                <div id="input">
+                    <el-input
+                            size="mini"
+                            placeholder="Search or jump to..."
+                            suffix-icon="el-icon-edit-outline">
+                    </el-input>
+                </div>
+                <div>
+                    <el-link :underline="false" type="primary" style="left: 40px;" @click="toService">控制台</el-link>
+                    <el-link :underline="false" type="primary" style="left: 60px">选项2</el-link>
+                    <el-link :underline="false" type="primary" style="left: 80px">选项3</el-link>
+                    <el-link :underline="false" type="primary" style="left: 100px">选项4</el-link>
+                    <el-link :underline="false" type="primary" style="left: 120px">选项5</el-link>
+                </div>
+                <el-menu
+                        mode="horizontal"
+                        background-color="#24292FFF"
+                        text-color="white"
+                        style="margin-left: auto;">
+                    <el-menu-item index="1">
+                        <i class="el-icon-bell"></i>
+                    </el-menu-item>
+                    <el-submenu index="2">
+                        <template slot="title">
+                            <i class="el-icon-plus"></i>
+                        </template>
+                        <el-menu-item index="2-1">选项1</el-menu-item>
+                    </el-submenu>
+                    <el-submenu index="3">
+                        <template slot="title">
+                            <el-avatar :size="30" :src="this.user.head"></el-avatar>
+                        </template>
+                        <el-menu-item index="2-1" @click="changePasswordDialog = true">修改密码</el-menu-item>
+                        <el-menu-item index="2-2" @click="uploadHeadDialog = true">更换头像</el-menu-item>
+                    </el-submenu>
+                </el-menu>
+            </el-container>
+        </el-header>
+        <el-container style="height: 640px; border: 1px solid #eee">
+            <!--侧边栏-->
+            <el-aside width="220px" style="background-color: rgb(238, 241, 246)">
+                <el-menu :default-openeds="['1']">
+                    <el-submenu index="1">
+                        <template slot="title"><i class="el-icon-menu"></i>菜单栏</template>
+                        <el-menu-item-group>
+                            <el-menu-item index="1-1" @click="changeFlag1">
+                                <i class="el-icon-help"></i>
+                                影片列表
+                            </el-menu-item>
+                        </el-menu-item-group>
+                    </el-submenu>
+                </el-menu>
+            </el-aside>
+            <el-container>
+                <!--影片列表-->
+                <el-main v-if="flag === 1">
+                    <b style="color: red;font-size: 20px">影片列表</b>
+                    <div style="float: right;">
+                        <el-button type="primary" @click="uploadMovieDialog = true">上传影片</el-button>
+                    </div>
+                    <template>
+                        <el-row>
+                            <el-col :span="4" v-for="movie in movies" :offset="0">
+                                <el-card :body-style="{ padding: '10px' }">
+                                    <img v-bind:src="movie.poster"
+                                         class="image" alt="" @click="changeFlag2(movie)">
+                                    <div style="padding: 10px;">
+                                        <span style="text-align: center;display:block;">{{movie.name}}</span>
+                                    </div>
+                                </el-card>
+                            </el-col>
+                        </el-row>
+                    </template>
+                    <!--分页工具条-->
+                    <el-pagination
+                            @size-change="handleSizeChangeMovies"
+                            @current-change="handleCurrentChangeMovies"
+                            :current-page="currentPageMovies"
+                            :page-sizes="[5, 10, 15, 20]"
+                            :pageSizeMovies="10"
+                            layout="total, sizes, prev, pager, next, jumper"
+                            :total="totalCountMovies">
+                    </el-pagination>
+                </el-main>
+                <!--影片信息-->
+                <el-main v-if="flag === 2">
+                    <b style="color: red;font-size: 30px">{{this.showMovie.name}}</b>
+                    <el-container>
+                        <div class="demo-image">
+                            <el-image
+                                    style="width: 170px; height: 246px"
+                                    :src="this.showMovie.poster"
+                                    @click="uploadPosterDialog = true"
+                            ></el-image>
+                        </div>
+                        <div>
+                            <el-descriptions class="margin-top" :column="1" :size="size">
+                                <el-descriptions-item label="导演">{{this.showMovie.director}}</el-descriptions-item>
+                                <el-descriptions-item label="主演">{{this.showMovie.leadingRole}}</el-descriptions-item>
+                                <el-descriptions-item label="类型">{{this.showMovie.type}}</el-descriptions-item>
+                                <el-descriptions-item label="制片国家/地区">{{this.showMovie.productionCountry}}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="上映日期">{{this.showMovie.releaseTime}}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="片长">{{this.showMovie.theTimeOfMovie}}分钟
+                                </el-descriptions-item>
+                                <el-descriptions-item label="票价">{{this.showMovie.price}}</el-descriptions-item>
+                            </el-descriptions>
+                        </div>
+                        <div>
+                            <el-button type="primary" @click="changeMovieDialog = true">修改信息</el-button>
+                        </div>
+                        <div>
+                            <el-button type="danger" @click="deleteMovie">删除电影</el-button>
+                        </div>
+                    </el-container>
+                    <el-button type="primary" @click="insertTicketPre">增加场次</el-button>
+                    <div v-for="ticket in tickets" :key="ticket.id" class="text item">
+                        <el-card class="box-card">
+                            <el-descriptions>
+                                <el-descriptions-item label="电影场次">{{ticket.filmSessions}}</el-descriptions-item>
+                                <el-descriptions-item label="开始时间">{{ticket.startTime}}</el-descriptions-item>
+                                <el-descriptions-item label="可选座位">{{ticket.optionalSeats}}</el-descriptions-item>
+                                <el-descriptions-item label="已选座位">{{ticket.selectedSeats}}</el-descriptions-item>
+                                <el-descriptions-item label="剩余票数">{{ticket.leftTicket}}</el-descriptions-item>
+                            </el-descriptions>
+                            <el-button type="primary" @click="updateTicketPre(ticket)">修改场次信息</el-button>
+                            <el-button type="primary" @click="updateSeatPre(ticket.id)">座位调整</el-button>
+                            <el-button type="danger" @click="deleteTicket(ticket.id)">删除场次</el-button>
+                        </el-card>
+                    </div>
+                </el-main>
+            </el-container>
+        </el-container>
+    </el-container>
+    <!--修改密码-->
+    <el-dialog
+            title="修改密码"
+            :visible.sync="changePasswordDialog"
+            width="50%">
+        <el-form ref="userForChangePassword"
+                 :model="user"
+                 label-width="80px">
+            <el-form-item>
+                <el-form-item label=新密码>
+                    <el-input v-model="user.password" show-password></el-input>
+                </el-form-item>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="changePasswordFun">修改</el-button>
+                <el-button @click="changePasswordDialog = false">取消</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+    <!--上传电影-->
+    <el-dialog
+            title="上传电影"
+            :visible.sync="uploadMovieDialog"
+            width="50%">
+        <el-form ref="movie"
+                 :model="movie"
+                 label-width="80px">
+            <el-form-item>
+                <el-form-item label=电影名称>
+                    <el-input v-model="movie.name"></el-input>
+                </el-form-item>
+                <el-form-item label=导演>
+                    <el-input v-model="movie.director"></el-input>
+                </el-form-item>
+                <el-form-item label=主演>
+                    <el-input v-model="movie.leadingRole"></el-input>
+                </el-form-item>
+                <el-form-item label=类型>
+                    <el-input v-model="movie.type"></el-input>
+                </el-form-item>
+                <el-form-item label=制片国家>
+                    <el-input v-model="movie.productionCountry"></el-input>
+                </el-form-item>
+                <el-form-item label=电影时长>
+                    <el-input v-model="movie.theTimeOfMovie"></el-input>
+                </el-form-item>
+                <el-form-item label="上映时间">
+                    <div class="block">
+                        <el-date-picker
+                                v-model="movie.releaseTime"
+                                type="datetime"
+                                placeholder="选择日期时间">
+                        </el-date-picker>
+                    </div>
+                </el-form-item>
+                <el-form-item label=票价>
+                    <el-input v-model="movie.price"></el-input>
+                </el-form-item>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="uploadMovie">上传</el-button>
+                <el-button @click="uploadMovieDialog = false">取消</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+    <!--上传海报-->
+    <el-dialog
+            title="上传海报"
+            :visible.sync="uploadPosterDialog"
+            width="50%">
+        <el-form ref="movie"
+                 :model="showMovie"
+                 label-width="80px">
+            <el-form-item>
+                <el-upload
+                        class="upload-demo"
+                        action="http://localhost:8080/TopViewCinema/movie/uploadPoster"
+                        :on-preview="handlePreview"
+                        :on-remove="handleRemove"
+                        :file-list="fileList"
+                        list-type="picture"
+                        :data="{id:showMovie.id}">
+                    <el-button size="small" type="primary">点击上传</el-button>
+                    <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+                </el-upload>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+    <!--修改电影信息-->
+    <el-dialog
+            title="修改电影信息"
+            :visible.sync="changeMovieDialog"
+            width="50%">
+        <el-form ref="showMovie"
+                 :model="showMovie"
+                 label-width="80px">
+            <el-form-item>
+                <el-form-item label=电影名称>
+                    <el-input v-model="showMovie.name"></el-input>
+                </el-form-item>
+                <el-form-item label=导演>
+                    <el-input v-model="showMovie.director"></el-input>
+                </el-form-item>
+                <el-form-item label=主演>
+                    <el-input v-model="showMovie.leadingRole"></el-input>
+                </el-form-item>
+                <el-form-item label=类型>
+                    <el-input v-model="showMovie.type"></el-input>
+                </el-form-item>
+                <el-form-item label=制片国家>
+                    <el-input v-model="showMovie.productionCountry"></el-input>
+                </el-form-item>
+                <el-form-item label=电影时长>
+                    <el-input v-model="showMovie.theTimeOfMovie"></el-input>
+                </el-form-item>
+                <el-form-item label="上映时间">
+                    <div class="block">
+                        <el-date-picker
+                                v-model="showMovie.releaseTime"
+                                type="datetime"
+                                placeholder="选择日期时间">
+                        </el-date-picker>
+                    </div>
+                </el-form-item>
+                <el-form-item label=票价>
+                    <el-input v-model="showMovie.price"></el-input>
+                </el-form-item>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="updateMovie">修改</el-button>
+                <el-button @click="changeMovieDialog = false">取消</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+    <!--增加场次-->
+    <el-dialog
+            title="增加场次"
+            :visible.sync="insertTicketDialog"
+            width="50%">
+        <el-form ref="ticket"
+                 :model="ticket"
+                 label-width="80px">
+            <el-form-item>
+                <el-form-item label="日期">
+                    <el-date-picker
+                            v-model="ticket.startTime"
+                            type="date"
+                            placeholder="请选择日期">
+                    </el-date-picker>
+                </el-form-item>
+                <el-form-item label="电影场次">
+                    <el-select v-model="ticket.filmSessions" placeholder="请选择电影场次">
+                        <el-option label="9:00" value="1"></el-option>
+                        <el-option label="14:00" value="2"></el-option>
+                        <el-option label="16:00" value="3"></el-option>
+                        <el-option label="20:00" value="4"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="可选座位">
+                    <el-checkbox-group v-model="ticket.optionalSeats">
+                        <!-- label绑定的值是要传的值 -->
+                        <el-checkbox :label="item" v-for="item in 60" :key="item.id">
+                        </el-checkbox>
+                    </el-checkbox-group>
+                </el-form-item>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="insertTicket">提交</el-button>
+                <el-button @click="insertTicketDialog = false">取消</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+    <!--修改场次-->
+    <el-dialog
+            title="修改场次"
+            :visible.sync="updateTicketDialog"
+            width="50%">
+        <el-form ref="ticket"
+                 :model="ticket"
+                 label-width="80px">
+            <el-form-item>
+                <el-form-item label="电影场次">
+                    <el-select v-model="ticket.filmSessions" placeholder="请选择电影场次">
+                        <el-option label="9:00" value="1"></el-option>
+                        <el-option label="14:00" value="2"></el-option>
+                        <el-option label="16:00" value="3"></el-option>
+                        <el-option label="20:00" value="4"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="可选座位">
+                    <el-checkbox-group v-model="ticket.optionalSeats">
+                        <!-- label绑定的值是要传的值 -->
+                        <el-checkbox :label="item" v-for="item in 60" :key="item.id">
+                        </el-checkbox>
+                    </el-checkbox-group>
+                </el-form-item>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="updateTicket">提交</el-button>
+                <el-button @click="updateTicketDialog = false">取消</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+    <!--上传头像-->
+    <el-dialog
+            title="上传头像"
+            :visible.sync="uploadHeadDialog"
+            width="50%">
+        <el-form ref="user"
+                 :model="user"
+                 label-width="80px">
+            <el-form-item>
+                <el-upload
+                        class="upload-demo"
+                        action="http://localhost:8080/TopViewCinema/user/uploadHead"
+                        :on-preview="handlePreview"
+                        :on-remove="handleRemove"
+                        :file-list="fileList"
+                        list-type="picture"
+                        :data="{id:user.id}">
+                    <el-button size="small" type="primary">点击上传</el-button>
+                    <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+                </el-upload>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+    <!--座位调整-->
+    <el-dialog
+            title="修改场次"
+            :visible.sync="updateSeatDialog"
+            width="50%">
+        <el-form ref="seat"
+                 :model="seat"
+                 label-width="80px">
+            <el-form-item>
+                <el-form-item label="操作">
+                    <el-select v-model="seat.operate" placeholder="请选择操作内容">
+                        <el-option label="增加座位" value="0"></el-option>
+                        <el-option label="去除座位" value="1"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="可选座位">
+                    <template>
+                        <el-radio-group v-model="seat.seat">
+                            <el-radio :label="index" v-for="index in 60" :key="index">{{index}}
+                            </el-radio>
+                        </el-radio-group>
+                    </template>
+                </el-form-item>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="updateSeat">提交</el-button>
+                <el-button @click="updateSeatDialog = false">取消</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+
+</div>
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.13/vue.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/1.3.4/axios.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/index.js"></script>
+<script src="js/group.js"></script>
+</body>
+<style>
+    .el-header {
+        background-color: rgba(0, 0, 0, 4);
+    }
+
+    .header-img {
+        width: 55px;
+        margin-top: 5px;
+    }
+
+    .header-title {
+        font: italic bold 20px/60px arial;
+        color: white;
+        width: 100px;
+    }
+
+    #input {
+        margin-top: 18px;
+        /*background-color: rgba(36, 41, 47, 4);*/
+    }
+
+    .el-link {
+        margin-top: 20px;
+        color: red;
+        font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+    }
+
+    .demo-table-expand {
+        font-size: 0;
+    }
+
+    .demo-table-expand label {
+        width: 90px;
+        color: #99a9bf;
+    }
+
+    .demo-table-expand .el-form-item {
+        margin-right: 0;
+        margin-bottom: 0;
+        width: 50%;
+    }
+
+    .time {
+        font-size: 13px;
+        color: #999;
+    }
+
+    .bottom {
+        margin-top: 5px;
+        line-height: 6px;
+    }
+
+    .button {
+        padding: 0;
+        float: right;
+    }
+
+    .image {
+        width: 100%;
+        display: block;
+    }
+
+    .clearfix:before,
+    .clearfix:after {
+        display: table;
+        content: "";
+    }
+
+    .clearfix:after {
+        clear: both
+    }
+
+    .text {
+        font-size: 14px;
+    }
+
+    .item {
+        margin-bottom: 18px;
+    }
+
+    .clearfix:before,
+    .clearfix:after {
+        display: table;
+        content: "";
+    }
+
+    .clearfix:after {
+        clear: both
+    }
+
+    .box-card {
+        width: 900px;
+    }
+</style>
+</html>

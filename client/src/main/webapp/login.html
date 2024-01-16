@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/theme-chalk/index.css" rel="stylesheet">
+</head>
+<body>
+<div id="loginDiv" style="height: 350px;">
+    <el-form ref="form" :model="userLogin" label-width="80px" class="frame">
+        <h1>欢迎来到TopView影院</h1>
+        <el-form-item label="电话号码">
+            <el-input
+                    placeholder="请输入电话号码"
+                    v-model="userLogin.phone"
+                    clearable>
+            </el-input>
+        </el-form-item>
+        <el-form-item label="密码">
+            <el-input placeholder="请输入密码" v-model="userLogin.password" show-password></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="login">登录</el-button>
+            <el-button>
+                <a style="text-decoration: none">
+                    第一次登录自动注册
+                </a>
+            </el-button>
+        </el-form-item>
+    </el-form>
+</div>
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.13/vue.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/1.3.4/axios.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/index.js"></script>
+<script>
+    new Vue({
+        el: "#loginDiv",
+        data() {
+            return {
+                userLogin: {
+                    phone: '',
+                    password: '',
+                },
+            }
+        },
+        methods: {
+            // 登录方法
+            login() {
+                // 发送ajax请求, 添加参数
+                axios({
+                    method: "post",
+                    url: "http://localhost:8080/TopViewCinema/user/login",
+                    data: this.userLogin
+                }).then(resp => {
+                    var result = resp.data;
+                    console.log(result)
+                    if (result.code === 1) {
+                        if (result.data === "admin") {
+                            location.replace("/TopViewCinema/group.html");
+                        } else {
+                            location.replace("/TopViewCinema/ticket.html");
+                        }
+                    } else {
+                        alert(result.msg)
+                    }
+                })
+            },
+        }
+    })
+</script>
+</body>
+<style>
+
+    h1 {
+        align-items: center;
+        display: flex;
+        justify-content: center;
+    }
+
+    #loginDiv {
+        width: 30%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 380px;
+        border-radius: 5px;
+        border: 1px solid #dccfcf;
+        margin: 180px auto;
+        padding: 35px 80px 15px 35px;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        box-shadow: 0 0 25px #909399;
+        background-color: rgba(219, 219, 221, 0.7);
+    }
+
+    html {
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+        margin: 0;
+        padding: 0;
+        background-image: url("img/reg_bg_min.jpg");
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        -moz-background-size: 100% 100%;
+    }
+
+    body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+
+
+</style>
+</html>

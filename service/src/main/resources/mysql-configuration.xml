@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--配置信息-->
+<mysql-configuration>
+    <driver>com.mysql.cj.jdbc.Driver</driver>
+    <url>jdbc:mysql://localhost:3306/database</url>
+    <username>root</username>
+    <password>123456</password>
+    <queryClass>lorm.factory.query.QueryImpl</queryClass>
+    <poolMinSize>5</poolMinSize>
+    <poolMaxSize>10</poolMaxSize>
+</mysql-configuration>

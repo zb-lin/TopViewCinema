@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>订票页面</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/theme-chalk/index.css" rel="stylesheet">
+</head>
+<body>
+<div id="app">
+    <el-container>
+        <!--头部-->
+        <el-header class="el-header">
+            <el-container>
+                <div>
+                    <el-image src="http://localhost:8080/TopViewCinema/img/logo.jpg" class="header-img"></el-image>
+                </div>
+                <div id="input">
+                    <el-input
+                            size="mini"
+                            placeholder="Search or jump to..."
+                            suffix-icon="el-icon-edit-outline"
+                            @change="listMoviesByParam"
+                            v-model="search">
+                    </el-input>
+                </div>
+                <div>
+                    <el-link :underline="false" type="primary" style="left: 40px;" @click="changeFlag4">排行榜</el-link>
+                    <el-link :underline="false" type="primary" style="left: 60px">选项2</el-link>
+                    <el-link :underline="false" type="primary" style="left: 80px">选项3</el-link>
+                    <el-link :underline="false" type="primary" style="left: 100px">选项4</el-link>
+                    <el-link :underline="false" type="primary" style="left: 120px">选项5</el-link>
+                </div>
+                <el-menu
+                        mode="horizontal"
+                        background-color="#24292FFF"
+                        text-color="white"
+                        style="margin-left: auto;">
+                    <el-menu-item index="1">
+                        <i class="el-icon-bell"></i>
+                    </el-menu-item>
+                    <el-submenu index="2">
+                        <template slot="title">
+                            <i class="el-icon-plus"></i>
+                        </template>
+                        <el-menu-item index="2-1">选项1</el-menu-item>
+                    </el-submenu>
+                    <el-submenu index="3">
+                        <template slot="title">
+                            <el-avatar :size="30" :src="this.user.head"></el-avatar>
+                        </template>
+                        <el-menu-item index="2-1" @click="changePasswordDialog = true">修改密码</el-menu-item>
+                        <el-menu-item index="2-2" @click="uploadHeadDialog = true">更换头像</el-menu-item>
+                    </el-submenu>
+                </el-menu>
+            </el-container>
+        </el-header>
+        <el-container style="height: 640px; border: 1px solid #eee">
+            <!--侧边栏-->
+            <el-aside width="220px" style="background-color: rgb(238, 241, 246)">
+                <el-menu :default-openeds="['1']">
+                    <el-submenu index="1">
+                        <template slot="title"><i class="el-icon-menu"></i>菜单栏</template>
+                        <el-menu-item-group>
+                            <el-menu-item index="1-1" @click="changeFlag1">
+                                <i class="el-icon-help"></i>
+                                影片列表
+                            </el-menu-item>
+                            <el-menu-item index="1-2" @click="changeFlag3">
+                                <i class="el-icon-help"></i>
+                                我的订单
+                            </el-menu-item>
+                        </el-menu-item-group>
+                    </el-submenu>
+                </el-menu>
+            </el-aside>
+            <el-container>
+                <!--影片列表-->
+                <el-main v-if="flag === 1">
+                    <b style="color: red;font-size: 20px">影片列表</b>
+                    <template>
+                        <el-row>
+                            <el-col :span="4" v-for="movie in movies" :offset="0">
+                                <el-card :body-style="{ padding: '10px' }">
+                                    <img v-bind:src="movie.poster"
+                                         class="image" alt="" @click="changeFlag2(movie)">
+                                    <div style="padding: 10px;">
+                                        <span style="text-align: center;display:block;">{{movie.name}}</span>
+                                    </div>
+                                </el-card>
+                            </el-col>
+                        </el-row>
+                    </template>
+                    <!--分页工具条-->
+                    <el-pagination
+                            @size-change="handleSizeChangeMovies"
+                            @current-change="handleCurrentChangeMovies"
+                            :current-page="currentPageMovies"
+                            :page-sizes="[5, 10, 15, 20]"
+                            :pageSizeMovies="10"
+                            layout="total, sizes, prev, pager, next, jumper"
+                            :total="totalCountMovies">
+                    </el-pagination>
+                </el-main>
+                <!--影片信息-->
+                <el-main v-if="flag === 2">
+                    <b style="color: red;font-size: 30px">{{this.showMovie.name}}</b>
+                    <el-container>
+                        <div class="demo-image">
+                            <el-image
+                                    style="width: 170px; height: 246px"
+                                    :src="this.showMovie.poster"
+                                    @click="uploadPosterDialog = true"
+                            ></el-image>
+                        </div>
+                        <div>
+                            <el-descriptions class="margin-top" :column="1" :size="size">
+                                <el-descriptions-item label="导演">{{this.showMovie.director}}</el-descriptions-item>
+                                <el-descriptions-item label="主演">{{this.showMovie.leadingRole}}</el-descriptions-item>
+                                <el-descriptions-item label="类型">{{this.showMovie.type}}</el-descriptions-item>
+                                <el-descriptions-item label="制片国家/地区">{{this.showMovie.productionCountry}}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="上映日期">{{this.showMovie.releaseTime}}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="片长">{{this.showMovie.theTimeOfMovie}}分钟
+                                </el-descriptions-item>
+                                <el-descriptions-item label="票价">{{this.showMovie.price}}</el-descriptions-item>
+                            </el-descriptions>
+                        </div>
+                        <div style="position:absolute;left:1250px;top:150px">
+                            <el-card class="box-card" body-style="width:150px;height:100px">
+                                <p>TopView评分</p>
+                                <el-rate
+                                        v-model="this.showMovie.evaluate"
+                                        disabled
+                                        show-score
+                                        text-color="#ff9900"
+                                        score-template="{value}">
+                                </el-rate>
+                            </el-card>
+                        </div>
+                    </el-container>
+                    <div>
+                        <el-button type="primary" @click="ticketZone">订票界面</el-button>
+                        <el-button type="primary" @click="commentZone">评论区</el-button>
+                        <el-button type="primary" @click="changeEvaluateDialog = true">评分</el-button>
+                    </div>
+                    <div v-for="ticket in tickets" :key="ticket.id" class="text item" v-if="flag2 === 1">
+                        <el-card class="box-card">
+                            <el-descriptions>
+                                <el-descriptions-item label="电影场次">{{ticket.filmSessions}}</el-descriptions-item>
+                                <el-descriptions-item label="开始时间">{{ticket.startTime}}</el-descriptions-item>
+                                <el-descriptions-item label="可选座位">{{ticket.optionalSeats}}</el-descriptions-item>
+                                <el-descriptions-item label="已选座位">{{ticket.selectedSeats}}</el-descriptions-item>
+                                <el-descriptions-item label="剩余票数">{{ticket.leftTicket}}</el-descriptions-item>
+                            </el-descriptions>
+                            <el-button type="primary" @click="bookTicketPre(ticket)">订票</el-button>
+                        </el-card>
+                    </div>
+                    <div v-if="flag2 === 2">
+                        <div v-for="comment in comments" :key="comment.id" class="text item">
+                            <el-card class="box-card">
+                                用户ID为{{comment.userId}}的用户看过
+                                <el-rate
+                                        v-model="comment.evaluate"
+                                        disabled
+                                        show-score
+                                        text-color="#ff9900"
+                                        score-template="{value}">
+                                </el-rate>
+                                {{comment.comment}}
+                            </el-card>
+                        </div>
+                        <el-pagination
+                                @size-change="handleSizeChangeComment"
+                                @current-change="handleCurrentChangeComment"
+                                :current-page="currentPageComment"
+                                :page-sizes="[5, 10, 15, 20]"
+                                :pageSizeComment="10"
+                                layout="total, sizes, prev, pager, next, jumper"
+                                :total="totalCountComment">
+                        </el-pagination>
+                    </div>
+                </el-main>
+                <!--我的订单-->
+                <el-main v-if="flag === 3">
+                    <b style="color: red;font-size: 20px">我的订单</b>
+                    <template>
+                        <el-table
+                                :data="orders"
+                                style="width: 100%">
+                            <el-table-column type="expand">
+                                <template slot-scope="props">
+                                    <el-form label-position="left" inline class="demo-table-expand">
+                                        <el-form-item label="订单id">
+                                            <span>{{ props.row.order.id }}</span>
+                                        </el-form-item>
+                                        <el-form-item label="电影名">
+                                            <span>{{ props.row.movieName }}</span>
+                                        </el-form-item>
+                                        <el-form-item label="座位">
+                                            <span>{{ props.row.order.seat }}</span>
+                                        </el-form-item>
+                                        <el-form-item label="支付方式">
+                                            <span>{{ props.row.order.paymentMethod }}</span>
+                                        </el-form-item>
+                                        <el-form-item label="价格">
+                                            <span>{{ props.row.order.price }}</span>
+                                        </el-form-item>
+                                        <el-form-item label="过期时间">
+                                            <span>{{ props.row.order.expirationTime }}</span>
+                                        </el-form-item>
+                                        <el-form-item label="开始时间">
+                                            <span>{{ props.row.startTime }}</span>
+                                        </el-form-item>
+                                        <el-form-item label="状态" v-if="props.row.order.status === 0">
+                                            <span>未看</span>
+                                        </el-form-item>
+                                        <el-form-item label="状态" v-if="props.row.order.status === 1">
+                                            <span>已看</span>
+                                        </el-form-item>
+                                        <el-form-item label="状态" v-if="props.row.order.status === 2">
+                                            <span>已过期</span>
+                                        </el-form-item>
+                                        <el-form-item label="状态" v-if="props.row.order.status === 3">
+                                            <span>已退票</span>
+                                        </el-form-item>
+                                    </el-form>
+                                </template>
+                            </el-table-column>
+                            <el-table-column
+                                    label="电影名"
+                                    prop="movieName">
+                            </el-table-column>
+                            <el-table-column
+                                    label="座位"
+                                    prop="order.seat">
+                            </el-table-column>
+                            <el-table-column
+                                    label="价格"
+                                    prop="order.price">
+                            </el-table-column>
+                            <el-table-column
+                                    label="状态"
+                                    prop="order.status">
+                                <template slot-scope="props">
+                                    <span v-if="props.row.order.status === 0">未看</span>
+                                    <span v-else-if="props.row.order.status === 1">已看</span>
+                                    <span v-else-if="props.row.order.status === 2">已过期</span>
+                                    <span v-else-if="props.row.order.status === 3">已退票</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="操作" align="center">
+                                <template slot-scope="scope">
+                                    <el-button type="primary"
+                                               @click="returnTicket(scope.row)"
+                                               v-if="scope.row.order.status === 0">退票
+                                    </el-button>
+                                    <el-button type="danger"
+                                               @click="deleteOrder(scope.row)"
+                                               v-else-if="scope.row.order.status === 2">删除
+                                    </el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </template>
+                    <!--分页工具条-->
+                    <el-pagination
+                            @size-change="handleSizeChangeOrders"
+                            @current-change="handleCurrentChangeOrders"
+                            :current-page="currentPageOrders"
+                            :page-sizes="[ 5, 10, 15, 20]"
+                            :pageSizeOrders="5"
+                            layout="total, sizes, prev, pager, next, jumper"
+                            :total="totalCountOrders">
+                    </el-pagination>
+                </el-main>
+                <!--排行榜-->
+                <el-main v-if="flag === 4">
+                    <b style="color: red;font-size: 20px">排行榜</b>
+                    <template>
+                        <el-row>
+                            <el-col :span="4" v-for="movie in movies" :offset="0">
+                                <el-card :body-style="{ padding: '10px' }">
+                                    <img v-bind:src="movie.poster"
+                                         class="image" alt="" @click="changeFlag2(movie)">
+                                    <div style="padding: 10px;">
+                                        <span style="text-align: center;display:block;">{{movie.name}}</span>
+                                    </div>
+                                </el-card>
+                            </el-col>
+                        </el-row>
+                    </template>
+                    <!--分页工具条-->
+                    <el-pagination
+                            @size-change="handleSizeChangeMovies"
+                            @current-change="handleCurrentChangeMovies"
+                            :current-page="currentPageMovies"
+                            :page-sizes="[5, 10, 15, 20]"
+                            :pageSizeMovies="10"
+                            layout="total, sizes, prev, pager, next, jumper"
+                            :total="totalCountMovies">
+                    </el-pagination>
+                </el-main>
+            </el-container>
+        </el-container>
+    </el-container>
+    <!--修改密码-->
+    <el-dialog
+            title="修改密码"
+            :visible.sync="changePasswordDialog"
+            width="50%">
+        <el-form ref="userForChangePassword"
+                 :model="user"
+                 label-width="80px">
+            <el-form-item>
+                <el-form-item label=新密码>
+                    <el-input v-model="user.password" show-password></el-input>
+                </el-form-item>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="changePasswordFun">修改</el-button>
+                <el-button @click="changePasswordDialog = false">取消</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+    <!--订票-->
+    <el-dialog
+            title="订票"
+            :visible.sync="bookTicketDialog"
+            width="50%">
+        <el-form ref="order"
+                 :model="order"
+                 label-width="80px">
+            <el-form-item>
+                <el-form-item label=座位>
+                    <template>
+                        <el-radio-group v-model="order.seat">
+                            <el-radio :label="index" v-for="index in thisOptionalSeats" :key="index">{{index}}
+                            </el-radio>
+                        </el-radio-group>
+                    </template>
+                </el-form-item>
+                <el-form-item label="支付方式">
+                    <el-select v-model="order.paymentMethod" placeholder="请选择支付方式">
+                        <el-option label="会员卡(可打八折)" value="0"></el-option>
+                        <el-option label="微信支付" value="1"></el-option>
+                        <el-option label="支付宝" value="2"></el-option>
+                        <el-option label="银行卡" value="3"></el-option>
+                    </el-select>
+                </el-form-item>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="bookTicket">购买</el-button>
+                <el-button @click="bookTicketDialog = false">取消</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+    <!--上传头像-->
+    <el-dialog
+            title="上传头像"
+            :visible.sync="uploadHeadDialog"
+            width="50%">
+        <el-form ref="user"
+                 :model="user"
+                 label-width="80px">
+            <el-form-item>
+                <el-upload
+                        class="upload-demo"
+                        action="http://localhost:8080/TopViewCinema/user/uploadHead"
+                        :on-preview="handlePreview"
+                        :on-remove="handleRemove"
+                        :file-list="fileList"
+                        list-type="picture"
+                        :data="{id:user.id}">
+                    <el-button size="small" type="primary">点击上传</el-button>
+                    <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+                </el-upload>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+    <!--评分-->
+    <el-dialog
+            title="评分"
+            :visible.sync="changeEvaluateDialog"
+            width="50%">
+        <el-form ref="evaluateDate"
+                 :model="evaluateDate"
+                 label-width="80px">
+            <el-form-item>
+                <el-form-item label=给个评价吧?(可选):>
+                    <template>
+                        <el-rate
+                                v-model="evaluateDate.evaluate"
+                                show-text>
+                        </el-rate>
+                    </template>
+                </el-form-item>
+                <el-form-item label="简短评论:">
+                    <el-input
+                            type="textarea"
+                            :rows="2"
+                            placeholder="请输入内容"
+                            v-model="evaluateDate.comment">
+                    </el-input>
+                </el-form-item>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="changeEvaluate">保存</el-button>
+                <el-button @click="changeEvaluateDialog = false">取消</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+
+</div>
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.13/vue.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/1.3.4/axios.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/index.js"></script>
+<script src="js/group.js"></script>
+</body>
+<style>
+    .el-header {
+        background-color: rgba(0, 0, 0, 4);
+    }
+
+    .header-img {
+        width: 55px;
+        margin-top: 5px;
+    }
+
+    .header-title {
+        font: italic bold 20px/60px arial;
+        color: white;
+        width: 100px;
+    }
+
+    #input {
+        margin-top: 18px;
+        /*background-color: rgba(36, 41, 47, 4);*/
+    }
+
+    #select {
+        margin-top: 18px;
+        /*background-color: rgba(36, 41, 47, 4);*/
+    }
+
+    .el-link {
+        margin-top: 20px;
+        color: red;
+        font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+    }
+
+    .demo-table-expand {
+        font-size: 0;
+    }
+
+    .demo-table-expand label {
+        width: 90px;
+        color: #99a9bf;
+    }
+
+    .demo-table-expand .el-form-item {
+        margin-right: 0;
+        margin-bottom: 0;
+        width: 50%;
+    }
+
+    .time {
+        font-size: 13px;
+        color: #999;
+    }
+
+    .bottom {
+        margin-top: 5px;
+        line-height: 6px;
+    }
+
+    .button {
+        padding: 0;
+        float: right;
+    }
+
+    .image {
+        width: 100%;
+        display: block;
+    }
+
+    .clearfix:before,
+    .clearfix:after {
+        display: table;
+        content: "";
+    }
+
+    .clearfix:after {
+        clear: both
+    }
+
+    .text {
+        font-size: 14px;
+    }
+
+    .item {
+        margin-bottom: 18px;
+    }
+
+    .clearfix:before,
+    .clearfix:after {
+        display: table;
+        content: "";
+    }
+
+    .clearfix:after {
+        clear: both
+    }
+
+    .box-card {
+        width: 900px;
+    }
+</style>
+</html>

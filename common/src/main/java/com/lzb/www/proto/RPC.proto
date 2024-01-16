@@ -1,0 +1,333 @@
+//使用 proto3 语法 ,未指定则使用proto2
+syntax = "proto3";
+
+//生成 proto 文件所在包路径
+package com.lzb.www.proto;
+
+//生成 proto 文件所在包路径
+option java_package = "com.lzb.www.proto";
+
+//生成 proto 文件名
+option java_outer_classname = "RPCProto";
+
+service UserService{
+  rpc login(UserRequest) returns(UserResponse){}
+  rpc getUser(UserRequest) returns(UserResponse){}
+  rpc changePassword(UserRequest) returns(UserResponse){}
+  rpc uploadHead(UserRequest) returns(UserResponse){}
+}
+message UserRequest{
+  message LoginInfo{
+    string phone = 1;
+    string password = 2;
+  }
+  message GetUserInfo{
+    string id = 1;
+  }
+  message ChangePasswordInfo{
+    User user = 1;
+  }
+  message UploadHeadInfo{
+    string fileName = 1;
+    int32 id = 2;
+  }
+  LoginInfo loginInfo = 1;
+  GetUserInfo getUserInfo = 2;
+  ChangePasswordInfo changePasswordInfo = 3;
+  UploadHeadInfo uploadHeadInfo = 4;
+}
+message UserResponse{
+  message LoginResult{
+    string result = 1;
+  }
+  message GetUserResult{
+    User user = 1;
+  }
+  message ChangePasswordResult{
+    bool result = 1;
+  }
+  message UploadHeadResult{
+    bool result = 1;
+  }
+  LoginResult loginResult = 1;
+  GetUserResult getUserResult = 2;
+  ChangePasswordResult changePasswordResult = 3;
+  UploadHeadResult uploadHeadResult = 4;
+}
+message User{
+  int32 id = 1;
+  string phone = 2;
+  string password = 3;
+  string head = 4;
+}
+service TicketService{
+  rpc insertTicket(TicketRequest) returns(TicketResponse){}
+  rpc listTicket(TicketRequest) returns(TicketResponse){}
+  rpc deleteTicket(TicketRequest) returns(TicketResponse){}
+  rpc updateTicket(TicketRequest) returns(TicketResponse){}
+  rpc updateSeat(TicketRequest) returns(TicketResponse){}
+}
+message TicketRequest{
+  message InsertTicketInfo{
+    Ticket ticket = 1;
+    int32 id = 2;
+  }
+  message ListTicketInfo{
+    string id = 1;
+  }
+  message DeleteTicketInfo{
+    int64 id = 1;
+  }
+  message UpdateTicketInfo{
+    Ticket ticket = 1;
+  }
+  message UpdateSeatInfo{
+    Seat seat = 1;
+  }
+  InsertTicketInfo insertTicketInfo = 1;
+  ListTicketInfo listTicketInfo = 2;
+  DeleteTicketInfo deleteTicketInfo = 3;
+  UpdateTicketInfo updateTicketInfo = 4;
+  UpdateSeatInfo updateSeatInfo = 5;
+}
+message TicketResponse{
+  message InsertTicketResult{
+    bool result = 1;
+  }
+  message ListTicketResult{
+    repeated Ticket ticket = 1;
+  }
+  message DeleteTicketResult{
+    bool result = 1;
+  }
+  message UpdateTicketResult{
+    bool result = 1;
+  }
+  message UpdateSeatResult{
+    bool result = 1;
+  }
+  InsertTicketResult insertTicketResult = 1;
+  ListTicketResult listTicketResult = 2;
+  DeleteTicketResult deleteTicketResult = 3;
+  UpdateTicketResult updateTicketResult = 4;
+  UpdateSeatResult updateSeatResult = 5;
+}
+message Ticket{
+  int64 id = 1;
+  int32 movieId = 2;
+  string filmSessions = 3;
+  string startTime = 4;
+  string optionalSeats = 5;
+  string selectedSeats = 6;
+  int32 leftTicket = 7;
+  int32 status = 8;
+}
+message Seat{
+  int32 seat = 1;
+  int32 operate = 2;
+  int64 ticketId = 3;
+}
+service RoleService{
+  rpc listPermission(RoleRequest) returns(RoleResponse){}
+}
+message RoleRequest{
+  message ListPermissionInfo{
+    int32 id = 1;
+  }
+  ListPermissionInfo listPermissionInfo = 1;
+}
+message RoleResponse{
+  message ListPermissionResult{
+    repeated string permission = 1;
+  }
+  ListPermissionResult listPermissionResult = 1;
+}
+service OrderService{
+  rpc insertOrder(OrderRequest) returns(OrderResponse){}
+  rpc listOrders(OrderRequest) returns(OrderResponse){}
+  rpc returnTicket(OrderRequest) returns(OrderResponse){}
+  rpc deleteOrder(OrderRequest) returns(OrderResponse){}
+}
+message OrderRequest{
+  message InsertOrderInfo{
+    Order order = 1;
+  }
+  message ListOrdersInfo{
+    int32 currentPage = 1;
+    int32 pageSize = 2;
+    int32 id = 3;
+  }
+  message ReturnTicketInfo{
+    int32 id = 1;
+  }
+  message DeleteOrderInfo{
+    int32 id = 1;
+  }
+  InsertOrderInfo insertOrderInfo = 1;
+  ListOrdersInfo listOrdersInfo = 2;
+  ReturnTicketInfo returnTicketInfo = 3;
+  DeleteOrderInfo deleteOrderInfo = 4;
+}
+message OrderResponse{
+  message InsertOrderResult{
+    bool result = 1;
+  }
+  message ListOrdersResult{
+    OrderPageBean pageBean = 1;
+  }
+  message ReturnTicketResult{
+    bool result = 1;
+  }
+  message DeleteOrderResult{
+    bool result = 1;
+  }
+  InsertOrderResult insertOrderResult = 1;
+  ListOrdersResult listOrdersResult = 2;
+  ReturnTicketResult returnTicketResult = 3;
+  DeleteOrderResult deleteOrderResult = 4;
+}
+message Order{
+  int32 id = 1;
+  int64 ticketId = 2;
+  int32 userId = 3;
+  int32 seat = 4;
+  string paymentMethod = 5;
+  double price = 6;
+  string expirationTime = 7;
+  int32 status = 8;
+}
+message OrderPageBean{
+  int32 totalCount = 1;
+  repeated Orders orders = 2;
+}
+message Orders{
+  Order order = 1;
+  string movieName = 2;
+  string startTime = 3;
+}
+service MovieService{
+  rpc insertMovie(MovieRequest) returns(MovieResponse){}
+  rpc listMovies(MovieRequest) returns(MovieResponse){}
+  rpc uploadPoster(MovieRequest) returns(MovieResponse){}
+  rpc updateMovie(MovieRequest) returns(MovieResponse){}
+  rpc deleteMovie(MovieRequest) returns(MovieResponse){}
+  rpc listMoviesByParam(MovieRequest) returns(MovieResponse){}
+  rpc updateEvaluate(MovieRequest) returns(MovieResponse){}
+}
+message MovieRequest{
+  message InsertMovieInfo{
+    Movie movie = 1;
+  }
+  message ListMoviesInfo{
+    int32 currentPage = 1;
+    int32 pageSize = 2;
+    int32 status = 3;
+  }
+  message UploadPosterInfo{
+    string fileName = 1;
+    int32 id = 2;
+  }
+  message UpdateMovieInfo{
+    Movie movie = 1;
+  }
+  message DeleteMovieInfo{
+    int32 id = 1;
+  }
+  message ListMoviesByParamInfo{
+    int32 currentPage = 1;
+    int32 pageSize = 2;
+    string param = 3;
+  }
+  message UpdateEvaluateInfo{
+    EvaluateDate evaluateDate = 1;
+  }
+  InsertMovieInfo insertMovieInfo = 1;
+  ListMoviesInfo listMoviesInfo = 2;
+  UploadPosterInfo uploadPosterInfo = 3;
+  UpdateMovieInfo updateMovieInfo = 4;
+  DeleteMovieInfo deleteMovieInfo = 5;
+  ListMoviesByParamInfo listMoviesByParamInfo = 6;
+  UpdateEvaluateInfo updateEvaluateInfo = 7;
+}
+message MovieResponse{
+  message InsertMovieResult{
+    bool result = 1;
+  }
+  message ListMoviesResult{
+    MoviePageBean moviePageBean = 1;
+  }
+  message UploadPosterResult{
+    bool result = 1;
+  }
+  message UpdateMovieResult{
+    bool result = 1;
+  }
+  message DeleteMovieResult{
+    bool result = 1;
+  }
+  message ListMoviesByParamResult{
+    MoviePageBean moviePageBean = 1;
+  }
+  message UpdateEvaluateResult{
+    bool result = 1;
+  }
+  InsertMovieResult insertMovieResult = 1;
+  ListMoviesResult listMoviesResult = 2;
+  UploadPosterResult uploadPosterResult = 3;
+  UpdateMovieResult updateMovieResult = 4;
+  DeleteMovieResult deleteMovieResult = 5;
+  ListMoviesByParamResult listMoviesByParamResult = 6;
+  UpdateEvaluateResult updateEvaluateResult = 7;
+}
+message Movie{
+  int32 id = 1;
+  string name = 2;
+  string director = 3;
+  string leadingRole = 4;
+  string type = 5;
+  string productionCountry = 6 ;
+  int32 theTimeOfMovie = 7 ;
+  string poster = 8 ;
+  string releaseTime = 9;
+  int32 price = 10;
+  int32 evaluate = 11 ;
+  int32 evaluateCount = 12 ;
+}
+message MoviePageBean{
+  int32 totalCount = 1;
+  repeated Movie movie = 2;
+}
+message EvaluateDate{
+  int32 movieId = 1;
+  int32 userId = 2;
+  int32 evaluate = 3;
+  string comment = 4;
+}
+service CommentService{
+  rpc listComment(CommentRequest) returns(CommentResponse){}
+}
+message CommentRequest{
+  message ListCommentInfo{
+    int32 currentPage = 1;
+    int32 pageSize = 2;
+    int32 movieId = 3;
+  }
+  ListCommentInfo listCommentInfo = 1;
+}
+message CommentResponse{
+  message ListCommentResult{
+    CommentPageBean  commentPageBean = 1;
+  }
+  ListCommentResult listCommentResult = 1;
+}
+message CommentPageBean{
+  int32 totalCount = 1;
+  repeated Comment comment = 2;
+}
+message Comment{
+  int32 id = 1;
+  int32 movieId = 2;
+  int32 userId = 3;
+  int32 evaluate = 4;
+  string comment = 5;
+}

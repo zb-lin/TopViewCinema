@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>后台管理界面</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/theme-chalk/index.css" rel="stylesheet">
+</head>
+<body>
+<div id="app">
+    <el-container>
+        <!--头部-->
+        <el-header class="el-header">
+            <el-container>
+                <div>
+                    <el-image src="http://localhost:8080/TopViewCinema/img/logo.jpg" class="header-img"></el-image>
+                </div>
+                <div id="input">
+                    <el-input
+                            size="mini"
+                            placeholder="Search or jump to..."
+                            suffix-icon="el-icon-edit-outline">
+                    </el-input>
+                </div>
+                <div>
+                    <el-link :underline="false" type="primary" style="left: 40px;">选项1</el-link>
+                    <el-link :underline="false" type="primary" style="left: 60px">选项2</el-link>
+                    <el-link :underline="false" type="primary" style="left: 80px">选项3</el-link>
+                    <el-link :underline="false" type="primary" style="left: 100px">选项4</el-link>
+                    <el-link :underline="false" type="primary" style="left: 120px">选项5</el-link>
+                </div>
+                <el-menu
+                        mode="horizontal"
+                        background-color="#24292FFF"
+                        text-color="white"
+                        style="margin-left: auto;">
+                    <el-menu-item index="1">
+                        <i class="el-icon-bell"></i>
+                    </el-menu-item>
+                    <el-submenu index="2">
+                        <template slot="title">
+                            <i class="el-icon-plus"></i>
+                        </template>
+                        <el-menu-item index="2-1">选项1</el-menu-item>
+                    </el-submenu>
+                    <el-submenu index="3">
+                        <template slot="title">
+                            <el-avatar :size="30" src="http://localhost:8080/TopViewCinema/img/logo.jpg"></el-avatar>
+                        </template>
+                    </el-submenu>
+                </el-menu>
+            </el-container>
+        </el-header>
+        <el-container style="height: 640px; border: 1px solid #eee">
+            <!--侧边栏-->
+            <el-aside width="220px" style="background-color: rgb(238, 241, 246)">
+                <el-menu :default-openeds="['1']">
+                    <el-submenu index="1">
+                        <template slot="title"><i class="el-icon-menu"></i>菜单栏</template>
+                        <el-menu-item-group>
+                            <el-menu-item index="1-1" @click="changeFlag1">
+                                <i class="el-icon-help"></i>
+                                服务提供者列表
+                            </el-menu-item>
+                            <el-menu-item index="1-2" @click="changeFlag2">
+                                <i class="el-icon-help"></i>
+                                服务消费者列表
+                            </el-menu-item>
+                            <el-menu-item index="1-3" @click="changeFlag3">
+                                <i class="el-icon-help"></i>
+                                服务调用情况
+                            </el-menu-item>
+                            <el-menu-item index="1-4" @click="changeFlag4">
+                                <i class="el-icon-help"></i>
+                                系统状况
+                            </el-menu-item>
+                        </el-menu-item-group>
+                    </el-submenu>
+                </el-menu>
+            </el-aside>
+            <el-container>
+                <!--服务提供者列表-->
+                <el-main v-if="flag === 1">
+                    <b style="color: red;font-size: 20px">服务提供者列表</b>
+                    <div style="float: right;">
+                        <el-button type="primary" @click="listServices">
+                            <i class="el-icon-refresh-left"></i>
+                        </el-button>
+                    </div>
+                    <template>
+                        <el-table
+                                :data="ServiceProviders"
+                                border
+                                style="width: 100%">
+                            <el-table-column
+                                    prop="hostname"
+                                    label="服务端ip"
+                                    width="180">
+                            </el-table-column>
+                            <el-table-column
+                                    prop="port"
+                                    label="服务端口"
+                                    width="180">
+                            </el-table-column>
+                            <el-table-column
+                                    prop="serviceInterface"
+                                    label="提供服务"
+                                    width="180">
+                            </el-table-column>
+                            <el-table-column
+                                    prop="expireTime"
+                                    label="过期时间"
+                                    width="200">
+                            </el-table-column>
+                        </el-table>
+                    </template>
+                </el-main>
+                <!--服务消费者列表-->
+                <el-main v-if="flag === 2">
+                    <b style="color: red;font-size: 20px">服务消费者列表</b>
+                    <div style="float: right;">
+                        <el-button type="primary" @click="listHosts">
+                            <i class="el-icon-refresh-left"></i>
+                        </el-button>
+                    </div>
+                    <template>
+                        <el-table
+                                :data="Hosts"
+                                border
+                                style="width: 100%">
+                            <el-table-column
+                                    prop="hostname"
+                                    label="ip地址"
+                                    width="180">
+                            </el-table-column>
+                            <el-table-column
+                                    prop="port"
+                                    label="端口号"
+                                    width="180">
+                            </el-table-column>
+                        </el-table>
+                    </template>
+                </el-main>
+                <!--服务调用情况-->
+                <el-main v-if="flag === 3">
+                    <b style="color: red;font-size: 20px">服务调用情况</b>
+                    <div style="float: right;">
+                        <el-button type="primary" @click="listServiceCallDates">
+                            <i class="el-icon-refresh-left"></i>
+                        </el-button>
+                    </div>
+                    <template>
+                        <el-table
+                                :data="ServiceCallDates"
+                                border
+                                style="width: 100%">
+                            <el-table-column
+                                    prop="interfaceName"
+                                    label="服务名"
+                                    width="180">
+                            </el-table-column>
+                            <el-table-column
+                                    prop="callCount"
+                                    label="服务调用的次数"
+                                    width="180">
+                            </el-table-column>
+                            <el-table-column
+                                    prop="successRate"
+                                    label="成功率/%"
+                                    width="180">
+                            </el-table-column>
+                            <el-table-column
+                                    prop="timeout"
+                                    label="平均响应时间/ms"
+                                    width="180">
+                            </el-table-column>
+                        </el-table>
+                    </template>
+                </el-main>
+                <!--系统状况-->
+                <el-main v-if="flag === 4">
+                    <div style="float: right;">
+                        <el-button type="primary" @click="getSystemCondition">
+                            <i class="el-icon-refresh-left"></i>
+                        </el-button>
+                    </div>
+                    <template>
+                        <el-descriptions title="系统状况" direction="vertical" :column="5" border>
+                            <el-descriptions-item label="CPU 使用率/%">{{SystemCondition.systemCpuLoad}}</el-descriptions-item>
+                            <el-descriptions-item label="内存使用率/%">{{SystemCondition.memoryUseRatio}}</el-descriptions-item>
+                            <el-descriptions-item label="系统总内存/GB" >{{SystemCondition.totalMemory}}</el-descriptions-item>
+                            <el-descriptions-item label="系统剩余内存/GB">{{SystemCondition.freeMemory}}</el-descriptions-item>
+                        </el-descriptions>
+                    </template>
+                </el-main>
+            </el-container>
+        </el-container>
+    </el-container>
+</div>
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.13/vue.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/1.3.4/axios.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/index.js"></script>
+<script src="js/service.js"></script>
+</body>
+<style>
+    .el-header {
+        background-color: rgba(0, 0, 0, 4);
+    }
+
+    .header-img {
+        width: 55px;
+        margin-top: 5px;
+    }
+
+    .header-title {
+        font: italic bold 20px/60px arial;
+        color: white;
+        width: 100px;
+    }
+
+    #input {
+        margin-top: 18px;
+        /*background-color: rgba(36, 41, 47, 4);*/
+    }
+
+    .el-link {
+        margin-top: 20px;
+        color: red;
+        font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+    }
+
+    .demo-table-expand {
+        font-size: 0;
+    }
+
+    .demo-table-expand label {
+        width: 90px;
+        color: #99a9bf;
+    }
+
+    .demo-table-expand .el-form-item {
+        margin-right: 0;
+        margin-bottom: 0;
+        width: 50%;
+    }
+
+    .time {
+        font-size: 13px;
+        color: #999;
+    }
+
+    .bottom {
+        margin-top: 5px;
+        line-height: 6px;
+    }
+
+    .button {
+        padding: 0;
+        float: right;
+    }
+
+    .image {
+        width: 100%;
+        display: block;
+    }
+
+    .clearfix:before,
+    .clearfix:after {
+        display: table;
+        content: "";
+    }
+
+    .clearfix:after {
+        clear: both
+    }
+
+    .text {
+        font-size: 14px;
+    }
+
+    .item {
+        margin-bottom: 18px;
+    }
+
+    .clearfix:before,
+    .clearfix:after {
+        display: table;
+        content: "";
+    }
+
+    .clearfix:after {
+        clear: both
+    }
+
+    .box-card {
+        width: 900px;
+    }
+
+    .like {
+        cursor: pointer;
+        font-size: 25px;
+        display: inline-block;
+    }
+</style>
+</html>
